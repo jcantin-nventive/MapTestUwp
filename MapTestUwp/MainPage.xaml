@@ -10,6 +10,14 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
 	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+		
 		<map:MapControl x:Name="myMap"/>
+
+		<TextBlock x:Name="txtPinsSummary"
+				   Grid.Row="1"/>
 	</Grid>
 </Page>

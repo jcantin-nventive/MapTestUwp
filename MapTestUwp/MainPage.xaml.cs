@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -15,6 +16,19 @@ namespace MapTestUwp
 	{
 		private IDictionary<MapIcon, PjcStore> storeForIcon = new Dictionary<MapIcon, PjcStore>();
 		private MapIcon selectedIcon = default;
+		private static readonly BasicGeoposition[] basicGeopositions = new BasicGeoposition[]
+		{
+			new BasicGeoposition() { Latitude = -60, Longitude = -160},
+			new BasicGeoposition() { Latitude = 11, Longitude = -140},
+			new BasicGeoposition() { Latitude = 58, Longitude = -120},
+			new BasicGeoposition() { Latitude = -60, Longitude = 8},
+			new BasicGeoposition() { Latitude = 2, Longitude = 10},
+			new BasicGeoposition() { Latitude = 44, Longitude = 2},
+			new BasicGeoposition() { Latitude = -44, Longitude = 120},
+			new BasicGeoposition() { Latitude = 58, Longitude = 160},
+			new BasicGeoposition() { Latitude = 88, Longitude = 155},
+			new BasicGeoposition() { Latitude = 0, Longitude = 0},
+		};
 
 		public MainPage()
 		{
@@ -29,8 +43,8 @@ namespace MapTestUwp
 			{
 				var store = new PjcStore(
 					name: $"Store {i}",
-					storeType: GetRandomStoreType(random),
-					geopoint: new Windows.Devices.Geolocation.Geopoint(new Windows.Devices.Geolocation.BasicGeoposition { Latitude = (random.NextDouble() * 180) - 90, Longitude = (random.NextDouble() * 360) - 180 })
+					storeType: GetStoreType(i),
+					geopoint: new Geopoint(basicGeopositions[i])
 				);
 				var poi = new MapIcon
 				{
@@ -44,11 +58,12 @@ namespace MapTestUwp
 				storeForIcon.Add(poi, store);
 			}
 			myMap.MapElementClick += MyMap_MapElementClick;
+			txtPinsSummary.Text = string.Join(Environment.NewLine, storeForIcon.Values.Select(store => $"{store.Name} - {store.StoreType}"));
 		}
 
-		private StoreType GetRandomStoreType(Random random)
+		private StoreType GetStoreType(int storeIndex)
 		{
-			return (StoreType)(random.Next() % 3);
+			return (StoreType)(storeIndex % 3);
 		}
 
 		private async void MyMap_MapElementClick(MapControl sender, MapElementClickEventArgs args)
