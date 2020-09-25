@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Maps;
@@ -10,8 +13,8 @@ namespace MapTestUwp
 {
 	public sealed partial class MainPage : Page
 	{
-		private IDictionary<PjcStore, MapIcon> allStores = new Dictionary<PjcStore, MapIcon>();
-		private IList<MapIcon> selectedIcons = new List<MapIcon>();
+		private IDictionary<MapIcon, PjcStore> storeForIcon = new Dictionary<MapIcon, PjcStore>();
+		private MapIcon selectedIcon = default;
 
 		public MainPage()
 		{
@@ -19,7 +22,7 @@ namespace MapTestUwp
 			Loaded += MainPage_Loaded;
 		}
 
-		private void MainPage_Loaded(object sender, RoutedEventArgs e)
+		private async void MainPage_Loaded(object sender, RoutedEventArgs e)
 		{
 			var random = new Random();
 			for (int i = 0; i < 10; i++)
@@ -35,9 +38,10 @@ namespace MapTestUwp
 					NormalizedAnchorPoint = new Point(0.5, 1.0),
 					Title = store.Name,
 					ZIndex = 0,
+					Image = await GetImageForStore(store, isSelected: false)
 				};
 				myMap.MapElements.Add(poi);
-				allStores.Add(store, poi);
+				storeForIcon.Add(poi, store);
 			}
 			myMap.MapElementClick += MyMap_MapElementClick;
 		}
@@ -47,21 +51,67 @@ namespace MapTestUwp
 			return (StoreType)(random.Next() % 3);
 		}
 
-		private void MyMap_MapElementClick(MapControl sender, MapElementClickEventArgs args)
+		private async void MyMap_MapElementClick(MapControl sender, MapElementClickEventArgs args)
 		{
 			foreach (var icon in args.MapElements.OfType<MapIcon>())
 			{
-				if (selectedIcons.Contains(icon))
+				if (selectedIcon == icon)
 				{
-					selectedIcons.Remove(icon);
-					icon.Title = icon.Title.Substring(0, icon.Title.IndexOf(" - clicked"));
+					// Unselect
+					selectedIcon = null;
+					icon.Image = await GetImageForStore(storeForIcon[icon], isSelected: false);
 				}
 				else
 				{
-					selectedIcons.Add(icon);
-					icon.Title += " - clicked";
+					// Unselect the other icon
+					if (selectedIcon != null)
+					{
+						selectedIcon.Image = await GetImageForStore(storeForIcon[icon], isSelected: false);
+					}
+
+					// Select
+					selectedIcon = icon;
+					icon.Image = await GetImageForStore(storeForIcon[icon], isSelected: true);
 				}
 			}
+		}
+
+		private async Task<IRandomAccessStreamReference> GetImageForStore(PjcStore store, bool isSelected)
+		{
+			string fileName = "";
+			if (isSelected)
+			{
+				switch (store.StoreType)
+				{
+					case StoreType.Bleu:
+						fileName = "pin_bleu_selection_base.png";
+						break;
+					case StoreType.Vert:
+						fileName = "pin_verte_selection_base.png";
+						break;
+					case StoreType.Rouge:
+						fileName = "pin_rouge_selection_base.png";
+						break;
+				}
+			}
+			else
+			{
+				switch(store.StoreType)
+				{
+					case StoreType.Bleu:
+						fileName = "pin_bleu_normal_base.png";
+						break;
+					case StoreType.Vert:
+						fileName = "pin_verte_normal_base.png";
+						break;
+					case StoreType.Rouge:
+						fileName = "pin_rouge_normal_base.png";
+						break;
+				}
+			}
+
+			var imagePath = new Uri($"ms-appx:///Assets/PjcPins/{fileName}");
+			return await StorageFile.GetFileFromApplicationUriAsync(imagePath);
 		}
 	}
 }
