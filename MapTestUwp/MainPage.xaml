@@ -18,6 +18,7 @@
 		<map:MapControl x:Name="myMap"/>
 
 		<TextBlock x:Name="txtPinsSummary"
+				   Text="Please select a store"
 				   Grid.Row="1"/>
 	</Grid>
 </Page>

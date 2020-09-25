@@ -68,7 +68,6 @@ namespace MapTestUwp
 				_storeForIcon.Add(poi, store);
 			}
 			myMap.MapElementClick += MyMap_MapElementClick;
-			txtPinsSummary.Text = string.Join(Environment.NewLine, _storeForIcon.Values.Select(store => $"{store.Name} - {store.StoreType}"));
 		}
 
 		private StoreType GetStoreType(int storeIndex)
@@ -100,6 +99,15 @@ namespace MapTestUwp
 					// Select
 					_selectedIcon = icon;
 					icon.Image = _imageForStoreAndSelection[store.StoreType][true];
+				}
+
+				if (_selectedIcon != null)
+				{
+					txtPinsSummary.Text = $"Selected store: {store.Name}";
+				}
+				else
+				{
+					txtPinsSummary.Text = "Please select a store";
 				}
 			}
 		}
