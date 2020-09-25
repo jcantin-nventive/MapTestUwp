@@ -14,7 +14,6 @@ namespace MapTestUwp
 {
 	public sealed partial class MainPage : Page
 	{
-		private IDictionary<MapIcon, PjcStore> _storeForIcon = new Dictionary<MapIcon, PjcStore>();
 		private MapIcon _selectedIcon = default;
 		private static readonly BasicGeoposition[] _basicGeopositions = new BasicGeoposition[]
 		{
@@ -62,10 +61,10 @@ namespace MapTestUwp
 					NormalizedAnchorPoint = new Point(0.5, 1.0),
 					Title = store.Name,
 					ZIndex = 0,
-					Image = _imageForStoreAndSelection[store.StoreType][false]
+					Image = _imageForStoreAndSelection[store.StoreType][false],
+					Tag = store,
 				};
 				myMap.MapElements.Add(poi);
-				_storeForIcon.Add(poi, store);
 			}
 			myMap.MapElementClick += MyMap_MapElementClick;
 		}
@@ -79,7 +78,7 @@ namespace MapTestUwp
 		{
 			foreach (var icon in args.MapElements.OfType<MapIcon>())
 			{
-				var store = _storeForIcon[icon];
+				var store = (PjcStore)icon.Tag;
 
 				if (_selectedIcon == icon)
 				{
@@ -92,7 +91,7 @@ namespace MapTestUwp
 					// Unselect the other icon
 					if (_selectedIcon != null)
 					{
-						var previousStore = _storeForIcon[_selectedIcon];
+						var previousStore = (PjcStore)_selectedIcon.Tag;
 						_selectedIcon.Image = _imageForStoreAndSelection[previousStore.StoreType][false];
 					}
 
