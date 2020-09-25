@@ -10,6 +10,7 @@ namespace MapTestUwp
 {
 	public sealed partial class MainPage : Page
 	{
+		private IDictionary<PjcStore, MapIcon> allStores = new Dictionary<PjcStore, MapIcon>();
 		private IList<MapIcon> selectedIcons = new List<MapIcon>();
 
 		public MainPage()
@@ -23,16 +24,27 @@ namespace MapTestUwp
 			var random = new Random();
 			for (int i = 0; i < 10; i++)
 			{
+				var store = new PjcStore(
+					name: $"Store {i}",
+					storeType: GetRandomStoreType(random),
+					geopoint: new Windows.Devices.Geolocation.Geopoint(new Windows.Devices.Geolocation.BasicGeoposition { Latitude = (random.NextDouble() * 180) - 90, Longitude = (random.NextDouble() * 360) - 180 })
+				);
 				var poi = new MapIcon
 				{
-					Location = new Windows.Devices.Geolocation.Geopoint(new Windows.Devices.Geolocation.BasicGeoposition { Latitude = (random.NextDouble() * 180) - 90, Longitude = (random.NextDouble() * 360) - 180 }),
+					Location = store.Geopoint,
 					NormalizedAnchorPoint = new Point(0.5, 1.0),
-					Title = $"Position {i}",
+					Title = store.Name,
 					ZIndex = 0,
 				};
 				myMap.MapElements.Add(poi);
+				allStores.Add(store, poi);
 			}
 			myMap.MapElementClick += MyMap_MapElementClick;
+		}
+
+		private StoreType GetRandomStoreType(Random random)
+		{
+			return (StoreType)(random.Next() % 3);
 		}
 
 		private void MyMap_MapElementClick(MapControl sender, MapElementClickEventArgs args)
