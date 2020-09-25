@@ -29,6 +29,7 @@ namespace MapTestUwp
 			new BasicGeoposition() { Latitude = 88, Longitude = 155},
 			new BasicGeoposition() { Latitude = 0, Longitude = 0},
 		};
+		private Dictionary<StoreType, Dictionary<bool, IRandomAccessStreamReference>> imageForStoreAndSelection = new Dictionary<StoreType, Dictionary<bool, IRandomAccessStreamReference>>();
 
 		public MainPage()
 		{
@@ -38,7 +39,16 @@ namespace MapTestUwp
 
 		private async void MainPage_Loaded(object sender, RoutedEventArgs e)
 		{
-			var random = new Random();
+			imageForStoreAndSelection.Add(StoreType.Bleu, new Dictionary<bool, IRandomAccessStreamReference>());
+			imageForStoreAndSelection.Add(StoreType.Vert, new Dictionary<bool, IRandomAccessStreamReference>());
+			imageForStoreAndSelection.Add(StoreType.Rouge, new Dictionary<bool, IRandomAccessStreamReference>());
+
+			foreach(var storeType in imageForStoreAndSelection.Keys)
+			{
+				imageForStoreAndSelection[storeType][true] = await GetImageForStore(storeType, true);
+				imageForStoreAndSelection[storeType][false] = await GetImageForStore(storeType, false);
+			}
+
 			for (int i = 0; i < 10; i++)
 			{
 				var store = new PjcStore(
@@ -52,7 +62,7 @@ namespace MapTestUwp
 					NormalizedAnchorPoint = new Point(0.5, 1.0),
 					Title = store.Name,
 					ZIndex = 0,
-					Image = await GetImageForStore(store, isSelected: false)
+					Image = imageForStoreAndSelection[store.StoreType][false]
 				};
 				myMap.MapElements.Add(poi);
 				storeForIcon.Add(poi, store);
@@ -66,37 +76,40 @@ namespace MapTestUwp
 			return (StoreType)(storeIndex % 3);
 		}
 
-		private async void MyMap_MapElementClick(MapControl sender, MapElementClickEventArgs args)
+		private void MyMap_MapElementClick(MapControl sender, MapElementClickEventArgs args)
 		{
 			foreach (var icon in args.MapElements.OfType<MapIcon>())
 			{
+				var store = storeForIcon[icon];
+
 				if (selectedIcon == icon)
 				{
 					// Unselect
 					selectedIcon = null;
-					icon.Image = await GetImageForStore(storeForIcon[icon], isSelected: false);
+					icon.Image = imageForStoreAndSelection[store.StoreType][false];
 				}
 				else
 				{
 					// Unselect the other icon
 					if (selectedIcon != null)
 					{
-						selectedIcon.Image = await GetImageForStore(storeForIcon[icon], isSelected: false);
+						selectedIcon.Image = imageForStoreAndSelection[store.StoreType][false];
 					}
 
 					// Select
 					selectedIcon = icon;
-					icon.Image = await GetImageForStore(storeForIcon[icon], isSelected: true);
+					icon.Image = imageForStoreAndSelection[store.StoreType][true];
 				}
 			}
 		}
 
-		private async Task<IRandomAccessStreamReference> GetImageForStore(PjcStore store, bool isSelected)
+		private async Task<IRandomAccessStreamReference> GetImageForStore(StoreType store, bool isSelected)
 		{
+			// Cache these?
 			string fileName = "";
 			if (isSelected)
 			{
-				switch (store.StoreType)
+				switch (store)
 				{
 					case StoreType.Bleu:
 						fileName = "pin_bleu_selection_base.png";
@@ -111,7 +124,7 @@ namespace MapTestUwp
 			}
 			else
 			{
-				switch(store.StoreType)
+				switch(store)
 				{
 					case StoreType.Bleu:
 						fileName = "pin_bleu_normal_base.png";
