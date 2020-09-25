@@ -14,9 +14,9 @@ namespace MapTestUwp
 {
 	public sealed partial class MainPage : Page
 	{
-		private IDictionary<MapIcon, PjcStore> storeForIcon = new Dictionary<MapIcon, PjcStore>();
-		private MapIcon selectedIcon = default;
-		private static readonly BasicGeoposition[] basicGeopositions = new BasicGeoposition[]
+		private IDictionary<MapIcon, PjcStore> _storeForIcon = new Dictionary<MapIcon, PjcStore>();
+		private MapIcon _selectedIcon = default;
+		private static readonly BasicGeoposition[] _basicGeopositions = new BasicGeoposition[]
 		{
 			new BasicGeoposition() { Latitude = -60, Longitude = -160},
 			new BasicGeoposition() { Latitude = 11, Longitude = -140},
@@ -29,7 +29,7 @@ namespace MapTestUwp
 			new BasicGeoposition() { Latitude = 88, Longitude = 155},
 			new BasicGeoposition() { Latitude = 0, Longitude = 0},
 		};
-		private Dictionary<StoreType, Dictionary<bool, IRandomAccessStreamReference>> imageForStoreAndSelection = new Dictionary<StoreType, Dictionary<bool, IRandomAccessStreamReference>>();
+		private Dictionary<StoreType, Dictionary<bool, IRandomAccessStreamReference>> _imageForStoreAndSelection = new Dictionary<StoreType, Dictionary<bool, IRandomAccessStreamReference>>();
 
 		public MainPage()
 		{
@@ -39,14 +39,14 @@ namespace MapTestUwp
 
 		private async void MainPage_Loaded(object sender, RoutedEventArgs e)
 		{
-			imageForStoreAndSelection.Add(StoreType.Bleu, new Dictionary<bool, IRandomAccessStreamReference>());
-			imageForStoreAndSelection.Add(StoreType.Vert, new Dictionary<bool, IRandomAccessStreamReference>());
-			imageForStoreAndSelection.Add(StoreType.Rouge, new Dictionary<bool, IRandomAccessStreamReference>());
+			_imageForStoreAndSelection.Add(StoreType.Bleu, new Dictionary<bool, IRandomAccessStreamReference>());
+			_imageForStoreAndSelection.Add(StoreType.Vert, new Dictionary<bool, IRandomAccessStreamReference>());
+			_imageForStoreAndSelection.Add(StoreType.Rouge, new Dictionary<bool, IRandomAccessStreamReference>());
 
-			foreach(var storeType in imageForStoreAndSelection.Keys)
+			foreach(var storeType in _imageForStoreAndSelection.Keys)
 			{
-				imageForStoreAndSelection[storeType][true] = await GetImageForStore(storeType, true);
-				imageForStoreAndSelection[storeType][false] = await GetImageForStore(storeType, false);
+				_imageForStoreAndSelection[storeType][true] = await GetImageForStore(storeType, true);
+				_imageForStoreAndSelection[storeType][false] = await GetImageForStore(storeType, false);
 			}
 
 			for (int i = 0; i < 10; i++)
@@ -54,7 +54,7 @@ namespace MapTestUwp
 				var store = new PjcStore(
 					name: $"Store {i}",
 					storeType: GetStoreType(i),
-					geopoint: new Geopoint(basicGeopositions[i])
+					geopoint: new Geopoint(_basicGeopositions[i])
 				);
 				var poi = new MapIcon
 				{
@@ -62,13 +62,13 @@ namespace MapTestUwp
 					NormalizedAnchorPoint = new Point(0.5, 1.0),
 					Title = store.Name,
 					ZIndex = 0,
-					Image = imageForStoreAndSelection[store.StoreType][false]
+					Image = _imageForStoreAndSelection[store.StoreType][false]
 				};
 				myMap.MapElements.Add(poi);
-				storeForIcon.Add(poi, store);
+				_storeForIcon.Add(poi, store);
 			}
 			myMap.MapElementClick += MyMap_MapElementClick;
-			txtPinsSummary.Text = string.Join(Environment.NewLine, storeForIcon.Values.Select(store => $"{store.Name} - {store.StoreType}"));
+			txtPinsSummary.Text = string.Join(Environment.NewLine, _storeForIcon.Values.Select(store => $"{store.Name} - {store.StoreType}"));
 		}
 
 		private StoreType GetStoreType(int storeIndex)
@@ -80,25 +80,26 @@ namespace MapTestUwp
 		{
 			foreach (var icon in args.MapElements.OfType<MapIcon>())
 			{
-				var store = storeForIcon[icon];
+				var store = _storeForIcon[icon];
 
-				if (selectedIcon == icon)
+				if (_selectedIcon == icon)
 				{
 					// Unselect
-					selectedIcon = null;
-					icon.Image = imageForStoreAndSelection[store.StoreType][false];
+					_selectedIcon = null;
+					icon.Image = _imageForStoreAndSelection[store.StoreType][false];
 				}
 				else
 				{
 					// Unselect the other icon
-					if (selectedIcon != null)
+					if (_selectedIcon != null)
 					{
-						selectedIcon.Image = imageForStoreAndSelection[store.StoreType][false];
+						var previousStore = _storeForIcon[_selectedIcon];
+						_selectedIcon.Image = _imageForStoreAndSelection[previousStore.StoreType][false];
 					}
 
 					// Select
-					selectedIcon = icon;
-					icon.Image = imageForStoreAndSelection[store.StoreType][true];
+					_selectedIcon = icon;
+					icon.Image = _imageForStoreAndSelection[store.StoreType][true];
 				}
 			}
 		}
