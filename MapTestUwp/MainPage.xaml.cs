@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Windows.Foundation;
 using Windows.UI.Xaml;
@@ -19,14 +20,18 @@ namespace MapTestUwp
 
 		private void MainPage_Loaded(object sender, RoutedEventArgs e)
 		{
-			var poi1 = new MapIcon
+			var random = new Random();
+			for (int i = 0; i < 10; i++)
 			{
-				Location = new Windows.Devices.Geolocation.Geopoint(new Windows.Devices.Geolocation.BasicGeoposition { Latitude = 51, Longitude = 0 }),
-				NormalizedAnchorPoint = new Point(0.5, 1.0),
-				Title = "Position 1",
-				ZIndex = 0,
-			};
-			myMap.MapElements.Add(poi1);
+				var poi = new MapIcon
+				{
+					Location = new Windows.Devices.Geolocation.Geopoint(new Windows.Devices.Geolocation.BasicGeoposition { Latitude = (random.NextDouble() * 180) - 90, Longitude = (random.NextDouble() * 360) - 180 }),
+					NormalizedAnchorPoint = new Point(0.5, 1.0),
+					Title = $"Position {i}",
+					ZIndex = 0,
+				};
+				myMap.MapElements.Add(poi);
+			}
 			myMap.MapElementClick += MyMap_MapElementClick;
 		}
 
